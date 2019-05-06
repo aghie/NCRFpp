@@ -2,6 +2,11 @@ NCRF++: An Open-source Neural Sequence Labeling Toolkit
 
 > This is the specific version of NCRFpp used in "Better, Faster, Stronger Sequence Tagging Constituent Parsers", published at NAACL 2019. It includes a simple implementation for hard-sharing multitask learning, auxiliary tasks, and further fine-tuning with policy gradient. 
 
+TODO
+======
+
+This MTL version does not support CRF on top of the neural network  
+
 ======
 Sequence labeling models are quite popular in many NLP tasks, such as Named Entity Recognition (NER), part-of-speech (POS) tagging and word segmentation. State-of-the-art sequence labeling models mostly utilize the CRF structure with input word features. LSTM (or bidirectional LSTM) is a popular deep learning based feature extractor in sequence labeling task. And CNN can also be used due to faster computation. Besides, features within word are also useful to represent word, which can be captured by character LSTM or character CNN structure or human-defined neural features.
 
