@@ -24,10 +24,10 @@ from utils.metric import get_ner_fmeasure
 from model.seqmodel import SeqModel
 from model.seqmodel_policy_ac import SeqModel_Policy
 from utils.data import Data
-from tree2labels.utils import sequence_to_parenthesis
 import math
 from py2evalb import scorer
 from py2evalb  import parser as evalbparser
+from tree2labels.utils import sequence_to_parenthesis
 from tree2labels.encoding2multitask import decode_int
 #from tree2labels.encoding2multitask_int import decode_int
 from tree2labels.evaluate import posprocess_labels
