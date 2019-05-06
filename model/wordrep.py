@@ -97,7 +97,7 @@ class WordRep(nn.Module):
         word_list = [word_embs]
         for idx in range(self.feature_num):
             word_list.append(self.feature_embeddings[idx](feature_inputs[idx]))
-
+         
         if self.use_char:
             ## calculate char lstm last hidden
             char_features = self.char_feature.get_last_hiddens(char_inputs, char_seq_lengths.cpu().numpy())
@@ -114,5 +114,6 @@ class WordRep(nn.Module):
                 word_list.append(char_features_extra)
         word_embs = torch.cat(word_list, 2)
         word_represent = self.drop(word_embs)
+
         return word_represent
         

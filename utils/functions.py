@@ -17,7 +17,14 @@ def normalize_word(word):
     return new_word
 
 
-def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, label_alphabet, number_normalized, max_sent_length, char_padding_size=-1, char_padding_symbol = '</pad>'):
+
+def parse_multitask_label(multitask_label):
+    return multitask_label.split("{}")
+
+
+def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, 
+                  label_alphabet, number_normalized, max_sent_length, tasks,
+                  char_padding_size=-1, char_padding_symbol = '</pad>'):
     feature_num = len(feature_alphabets)
     in_lines = open(input_file,'r').readlines()
     instence_texts = []
@@ -25,22 +32,46 @@ def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, l
     words = []
     features = []
     chars = []
+    #labels = []
+    
+    #Create n lists of labels for n tasks
     labels = []
+    for idtask in range(len(label_alphabet)):
+        labels.append([])
+    
+    
     word_Ids = []
     feature_Ids = []
     char_Ids = []
+    #Create n lists of label_Ids for n tasks
     label_Ids = []
+
+    for idtask in range(len(label_alphabet)):
+        label_Ids.append([])
+
     for line in in_lines:
+        
         if len(line) > 2:
             pairs = line.strip().split()
             word = pairs[0].decode('utf-8')
             if number_normalized:
                 word = normalize_word(word)
+            
             label = pairs[-1]
+            
+            if len(label_alphabet) > 1:
+                label = parse_multitask_label(label)
+            else:
+                label = [label]
+            
+
+            for idtask in range(len(label)):
+                labels[idtask].append(label[idtask])
+                label_Ids[idtask].append(label_alphabet[idtask].get_index(label[idtask]))
+                
             words.append(word)
-            labels.append(label)
             word_Ids.append(word_alphabet.get_index(word))
-            label_Ids.append(label_alphabet.get_index(label))
+          
             ## get features
             feat_list = []
             feat_Id = []
@@ -74,12 +105,20 @@ def read_instance(input_file, word_alphabet, char_alphabet, feature_alphabets, l
             words = []
             features = []
             chars = []
+            #Create n lists of labels for n tasks
             labels = []
+            for idtask in range(len(label_alphabet)):
+                labels.append([])
+                
             word_Ids = []
             feature_Ids = []
             char_Ids = []
             label_Ids = []
+            for idtask in range(len(label_alphabet)):
+                label_Ids.append([])
+
     return instence_texts, instence_Ids
+
 
 
 def build_pretrain_embedding(embedding_path, word_alphabet, embedd_dim=100, norm=True):    
@@ -128,15 +167,12 @@ def load_pretrain_emb(embedding_path):
             if embedd_dim < 0:
                 embedd_dim = len(tokens) - 1
             else:
-#                 print line
-#                 print embedd_dim +1,
-#                 print len(tokens)
-#                 print
                 assert (embedd_dim + 1 == len(tokens))
             embedd = np.empty([1, embedd_dim])
             embedd[:] = tokens[1:]
             embedd_dict[tokens[0].decode('utf-8')] = embedd
     return embedd_dict, embedd_dim
+
 
 if __name__ == '__main__':
     a = np.arange(9.0)

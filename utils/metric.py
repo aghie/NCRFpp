@@ -35,8 +35,7 @@ def get_ner_fmeasure(golden_lists, predict_lists, label_type="BMES"):
         else:
             gold_matrix = get_ner_BIO(golden_list)
             pred_matrix = get_ner_BIO(predict_list)
-        # print "gold", gold_matrix
-        # print "pred", pred_matrix
+
         right_ner = list(set(gold_matrix).intersection(set(pred_matrix)))
         golden_full += gold_matrix
         predict_full += pred_matrix
@@ -58,7 +57,7 @@ def get_ner_fmeasure(golden_lists, predict_lists, label_type="BMES"):
         f_measure = 2*precision*recall/(precision+recall)
     accuracy = (right_tag+0.0)/all_tag
     # print "Accuracy: ", right_tag,"/",all_tag,"=",accuracy
-    print "gold_num = ", golden_num, " pred_num = ", predict_num, " right_num = ", right_num
+ #   print "gold_num = ", golden_num, " pred_num = ", predict_num, " right_num = ", right_num
     return accuracy, precision, recall, f_measure
 
 

@@ -26,8 +26,7 @@ class Alphabet:
         self.next_index = 1
         if not self.label:
             self.add(self.UNKNOWN)
-        #    print "ENTRA", self.instance2index
-        #    exit()
+
 
     def clear(self, keep_growing=True):
         self.instance2index = {}
@@ -57,9 +56,7 @@ class Alphabet:
                     return self.instance2index[self.UNKNOWN]
                 except KeyError:
                     return 0
-#                     print self.instance2index
-#                     print instance
-#                     exit()
+
 
     def get_instance(self, index):
         if index == 0:

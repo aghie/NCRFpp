@@ -8,13 +8,22 @@ import torch.autograd as autograd
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+import time
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from wordrep import WordRep
+
+
+# https://discuss.pytorch.org/t/list-of-nn-module-in-a-nn-module/219
 
 class WordSequence(nn.Module):
     def __init__(self, data):
         super(WordSequence, self).__init__()
         print("build word sequence feature extractor: %s..."%(data.word_feature_extractor))
+        
+        self.tasks = data.HP_tasks
+        self.main_tasks =  data.HP_main_tasks
+        self.data = data
+
         self.gpu = data.HP_gpu
         self.use_char = data.use_char
         # self.batch_size = data.HP_batch_size
@@ -36,6 +45,7 @@ class WordSequence(nn.Module):
             lstm_hidden = data.HP_hidden_dim // 2
         else:
             lstm_hidden = data.HP_hidden_dim
+        self.lstm_hidden = lstm_hidden
 
         self.word_feature_extractor = data.word_feature_extractor
         if self.word_feature_extractor == "GRU":
@@ -56,23 +66,31 @@ class WordSequence(nn.Module):
                 self.cnn_list.append(nn.Conv1d(data.HP_hidden_dim, data.HP_hidden_dim, kernel_size=kernel, padding=pad_size))
                 self.cnn_drop_list.append(nn.Dropout(data.HP_dropout))
                 self.cnn_batchnorm_list.append(nn.BatchNorm1d(data.HP_hidden_dim))
-        # The linear layer that maps from hidden state space to tag space
-        self.hidden2tag = nn.Linear(data.HP_hidden_dim, data.label_alphabet_size)
+        
+        self.hidden2tagList = nn.ModuleList([nn.Linear(data.HP_hidden_dim, 
+                                                       data.label_alphabet_sizes[idtask])
+                                             for idtask in range(data.HP_tasks)])
+        
 
         if self.gpu:
             self.droplstm = self.droplstm.cuda()
-            self.hidden2tag = self.hidden2tag.cuda()
+            
+            #self.hidden2tag = self.hidden2tag.cuda() 
+            #Transferring the feed-forward networks for multitask learning to the gpu
+            self.hidden2tagList.cuda() 
+           
             if self.word_feature_extractor == "CNN":
                 self.word2cnn = self.word2cnn.cuda()
                 for idx in range(self.cnn_layer):
                     self.cnn_list[idx] = self.cnn_list[idx].cuda()
                     self.cnn_drop_list[idx] = self.cnn_drop_list[idx].cuda()
                     self.cnn_batchnorm_list[idx] = self.cnn_batchnorm_list[idx].cuda()
+                    
             else:
                 self.lstm = self.lstm.cuda()
 
 
-    def forward(self, word_inputs, feature_inputs, word_seq_lengths, char_inputs, char_seq_lengths, char_seq_recover):
+    def forward(self, word_inputs, feature_inputs, word_seq_lengths, char_inputs, char_seq_lengths, char_seq_recover, inference):
         """
             input:
                 word_inputs: (batch_size, sent_len)
@@ -83,8 +101,9 @@ class WordSequence(nn.Module):
             output: 
                 Variable(batch_size, sent_len, hidden_dim)
         """
+        
         word_represent = self.wordrep(word_inputs,feature_inputs, word_seq_lengths, char_inputs, char_seq_lengths, char_seq_recover)
-        ## word_embs (batch_size, seq_len, embed_size)
+
         if self.word_feature_extractor == "CNN":
             word_in = F.tanh(self.word2cnn(word_represent)).transpose(2,1).contiguous()
             for idx in range(self.cnn_layer):
@@ -98,10 +117,17 @@ class WordSequence(nn.Module):
         else:
             packed_words = pack_padded_sequence(word_represent, word_seq_lengths.cpu().numpy(), True)
             hidden = None
-            lstm_out, hidden = self.lstm(packed_words, hidden)
-            lstm_out, _ = pad_packed_sequence(lstm_out)
-            ## lstm_out (seq_len, seq_len, hidden_size)
+            lstm_out, (hidden_x, cell_x) = self.lstm(packed_words, hidden)
+            lstm_out, _ = pad_packed_sequence(lstm_out)            
             feature_out = self.droplstm(lstm_out.transpose(1,0))
-        ## feature_out (batch_size, seq_len, hidden_size)
-        outputs = self.hidden2tag(feature_out)
+
+        outputs = [self.hidden2tagList[idtask](feature_out) for idtask in range(self.tasks)
+                   if not inference or idtask < self.main_tasks]
+                    
         return outputs
+    
+    
+    
+
+
+
