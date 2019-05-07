@@ -2,9 +2,11 @@ NCRF++: An Open-source Neural Sequence Labeling Toolkit
 ======
 
 
-This is the specific version of NCRFpp used in "Better, Faster, Stronger Sequence Tagging Constituent Parsers", published at NAACL 2019. It includes a simple implementation for hard-sharing multitask learning, auxiliary tasks, and further fine-tuning with policy gradient. See the [multitask learning section](#5-multitask-learning) for a quick explanation of the additional hyperparameters and format used in this NCRFpp version 
+This is the specific version of NCRFpp used in "Better, Faster, Stronger Sequence Tagging Constituent Parsers", published at NAACL 2019. It includes a simple implementation for hard-sharing multitask learning, auxiliary tasks, and further fine-tuning with policy gradient. 
 
-You will first should download, setup and include in your pythonpath the library [tree2labels](https://github.com/aghie)
+See the [multitask learning section](#5-multitask-learning) for a quick explanation of the additional hyperparameters and the differences in the input file format to train a MTL model.
+
+Also, you should first download, setup and include in your pythonpath the library [tree2labels](https://github.com/aghie)
 
 Todo
 ======
@@ -146,7 +148,7 @@ This hyperpameters are useful/needed if you are training a sequence tagging cons
 
 `optimize_with_evalb` Set to False to do model selection using the accuracy. If True, it will compute the bracketing F-score at each epoch, selecting the model that performs the best. 
 
-The configuration file `demo.train.mtl.config` also shows (commented) other hyperpameters needed to train sequence tagging constituent parsers using multitask learning.
+The configuration file `demo.train.mtl.config` also shows (commented) other hyperpameters that are needed to train sequence tagging constituent parsers using multitask learning.
 
 6.Speed
 =========
