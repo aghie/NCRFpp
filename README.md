@@ -1,6 +1,6 @@
 NCRF++: An Open-source Neural Sequence Labeling Toolkit
 
-> This is the specific version of NCRFpp used in "Better, Faster, Stronger Sequence Tagging Constituent Parsers", published at NAACL 2019. It includes a simple implementation for hard-sharing multitask learning, auxiliary tasks, and further fine-tuning with policy gradient. 
+> This is the specific version of NCRFpp used in "Better, Faster, Stronger Sequence Tagging Constituent Parsers", published at NAACL 2019. It includes a simple implementation for hard-sharing multitask learning, auxiliary tasks, and further fine-tuning with policy gradient. See the [multitask learning section](#MTL) for a quick explanation of the additional hyperparameters and format used in this NCRFpp version 
 
 Todo
 ======
