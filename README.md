@@ -1,11 +1,15 @@
 NCRF++: An Open-source Neural Sequence Labeling Toolkit
+======
 
-> This is the specific version of NCRFpp used in "Better, Faster, Stronger Sequence Tagging Constituent Parsers", published at NAACL 2019. It includes a simple implementation for hard-sharing multitask learning, auxiliary tasks, and further fine-tuning with policy gradient. See the [multitask learning section](#MTL) for a quick explanation of the additional hyperparameters and format used in this NCRFpp version 
+
+This is the specific version of NCRFpp used in "Better, Faster, Stronger Sequence Tagging Constituent Parsers", published at NAACL 2019. It includes a simple implementation for hard-sharing multitask learning, auxiliary tasks, and further fine-tuning with policy gradient. See the [multitask learning section](#5-multitask-learning) for a quick explanation of the additional hyperparameters and format used in this NCRFpp version 
+
+You will first should download, setup and include in your pythonpath the library [tree2labels](https://github.com/aghie)
 
 Todo
 ======
 
-This MTL version does not support CRF on top of the neural network  
+**This MTL version does not support CRF on top of the neural network**
 
 Description
 ======
@@ -27,7 +31,7 @@ Welcome to star this repository!
 
 Requirement:
 ======
-	Python: 2 or 3  
+	Python: 2.7
 	PyTorch: 0.3 (currently not support 0.4, will update soon)
 
 
@@ -100,15 +104,56 @@ feature=[Cap] emb_size=20 emb_dir=%your_pretrained_Cap_embedding
 
 Feature without pretrained embedding will be randomly initialized.
 
+5. Multitask learning
+=========
 
-5.Speed
+The format of the input file to train a multitask learning model is as follows (a dummy training and dev set can be found at `sample_data/train.cappos.mtl` and `sample_data/dev.cappos.mtl`):
+
+```
+EU        [Cap]1    [POS]NNP{}S-ORG
+rejects   [Cap]0    [POS]VBZ{}O
+German    [Cap]1    [POS]JJ{}S-MISC
+call      [Cap]0    [POS]NN{}O
+to        [Cap]0    [POS]TO{}O
+boycott   [Cap]0    [POS]VB{}O
+British   [Cap]1    [POS]JJ{}S-MISC
+lamb      [Cap]0    [POS]NN{}O
+.         [Cap]0    [POS].{}O
+```
+
+The only difference is in the last column, where each partial label (one label per task) is concatenated using the symbol `{}`. In this dummy example, we would be predicting two labels for EU: (1) [POS]NNP and S-ORG.
+
+
+A full configuration example for training and decoding can be found in `demo.train.mtl.config` and `demo.decode.mtl.config`, respectively.  
+
+`demo.decode.mtl.config` remains the same as in the original NCRFpp, but it does not support CRF (i.e. you must comment the n_best parameters, and previously have trained wit the option use_crf=False).
+
+`demo.train.mtl.config` contains some new hyperparameters:
+
+```
+main_tasks=2
+tasks=2
+tasks_weights=1|1
+```
+
+`main_tasks` specifies that the first N tasks are main tasks (they will be also be computed during testing). 
+`tasks` specifies the number of total tasks, i.e. tasks-main_tasks = M, the number of auxiliary tasks, which won't be computed during testing, they are only used for training).
+`tasks_weights` specifies the weight for the loss obtained for each task. Each task weight is separated by `|`.
+
+### Specific hyperameters for constituent parsing as sequence labeling.
+
+This hyperpameters are useful/needed if you are training a sequence tagging constituent parser.
+
+`optimize_with_evalb` Set to False to do model selection using the accuracy. If True, it will compute the bracketing F-score at each epoch, selecting the model that performs the best. 
+
+The configuration file `demo.train.mtl.config` also shows (commented) other hyperpameters needed to train sequence tagging constituent parsers using multitask learning.
+
+6.Speed
 =========
 NCRF++ is implemented using fully batched calculation, making it quite effcient on both model training and decoding. With the help of GPU (Nvidia GTX 1080) and large batch size, LSTMCRF model built with NCRF++ can reach 1000 sents/s and 2000sents/s on training and decoding status, respectively.
 
-![alt text](readme/speed.png "System speed on NER data")
 
-
-6.N best decoding performance:
+7.N best decoding performance:
 =========
 Traditional CRF structure decodes only one label sequence with largest probabolities (i.e. 1-best output). While NCRF++ can give a large choice, it can decode `n` label sequences with the top `n` probabilities (i.e. n-best output). The nbest decodeing has been supported by several popular **statistical** CRF framework. However to the best of our knowledge, NCRF++ is the only and the first toolkit which support nbest decoding in **neural** CRF models. 
 
@@ -117,7 +162,7 @@ In our implementation, when the nbest=10, CharCNN+WordLSTM+CRF model built in NC
 ![alt text](readme/nbest.png  "N best decoding oracle result")
 
 
-7.Reproduce paper results and Hyperparameter tuning:
+8.Reproduce paper results and Hyperparameter tuning:
 ========================
 To reproduce the results in our COLING 2018 paper, you only need to set the `iteration=1` as `iteration=100` in configuration file `demo.train.config` and configure your file directory in this configuration file. The default configuration file describes the `Char CNN + Word LSTM + CRF` model, you can build your own model by modifing the configuration accordingly. The parameters in this demo configuration file are the same in our paper. (Notice the `Word CNN` related models need slightly different parameters, details can be found in our COLING paper.)
 
