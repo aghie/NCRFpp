@@ -106,8 +106,8 @@ feature=[Cap] emb_size=20 emb_dir=%your_pretrained_Cap_embedding
 
 Feature without pretrained embedding will be randomly initialized.
 
-5. Multitask learning
-=========
+5.Multitask learning
+==========
 
 The format of the input file to train a multitask learning model is as follows (a dummy training and dev set can be found at `sample_data/train.cappos.mtl` and `sample_data/dev.cappos.mtl`):
 
