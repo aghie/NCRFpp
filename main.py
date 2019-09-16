@@ -855,10 +855,13 @@ def train_policy_grad(data):
                      J = J.cuda()
                  Js[index] = J
              #backprop
-             Js.backward(torch.ones_like(Js))
-             grad_norm = torch.nn.utils.clip_grad_norm(model.parameters(), 5.)
-             optimizer.step()
-             model.zero_grad()
+             try:
+                 Js.backward(torch.ones_like(Js))
+                 grad_norm = torch.nn.utils.clip_grad_norm(model.parameters(), 5.)
+                 optimizer.step()
+                 model.zero_grad()
+             except:
+                 pass
 
              if end%int(data.pg_valsteps) == 0:
                  temp_time = time.time()
